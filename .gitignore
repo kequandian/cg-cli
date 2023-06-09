@@ -1,0 +1,15 @@
+node_modules/
+*DEPLOY-SNAPSHOT.tar
+.idea/
+.classpath
+.factorypath
+.project
+.settings/
+out/
+.env
+webjar.jar
+dist/
+BOOT-INF/
+META-INF/
+.vscode/
+package-lock.json

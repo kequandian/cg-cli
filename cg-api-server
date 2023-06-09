@@ -1,0 +1,125 @@
+#!/bin/sh
+ARTIFACT='com.jfeat:cg-api:1.3.0:jar:standalone'
+artifact='cg-api-1.3.0-standalone.jar'
+testcase='cg-api-test.http'
+
+usage() {
+	cat <<- EOF
+    Usage: cg-api-server [OPTIONS]
+
+    OPTIONS:
+      -h --help           -- print usage
+      -p --port <PORT>    -- running port other than 8080
+      -f --force          -- force to update the standalone jar and cg-api-test.http
+      -t --testcase       -- open ct-api-test.http only
+	EOF
+	exit
+}
+## check options
+port_opt=$9
+port_arg=$9
+force_opt=$9
+testcase_opt=$9
+for opt in $@;do
+   if [[ $opt = '-h' || $opt = '--help' ]];then 
+     usage
+   elif [[ $opt = '-p' || $opt = '--port' ]];then 
+     port_opt=$opt
+   elif [[ $opt = '-f' || $opt = '--force' ]];then 
+     force_opt=$opt
+   elif [[ $opt = '-t' || $opt = '--test' ]];then 
+     testcase_opt=$opt
+   elif [ $port_opt ];then
+     port_arg=$opt
+     unset port_opt
+   fi
+done
+if [[ $port_opt && ! $port_arg ]];then 
+   usage
+fi
+
+
+## main
+
+get_test_http(){
+  echo jar xf $artifact BOOT-INF/classes/$testcase
+  jar xf $artifact BOOT-INF/classes/$testcase
+  echo mv BOOT-INF/classes/$testcase /tmp/$testcase
+  mv BOOT-INF/classes/$testcase /tmp/$testcase
+  rmdir BOOT-INF/classes 2> /dev/null
+  rmdir BOOT-INF 2> /dev/null
+}
+
+if [[ ! $port_opt && $port_arg ]];then 
+   port_opt="--server.port=$port_arg"
+fi
+
+
+## #####################
+## get artifacdt
+## #####################
+
+## get cg-api-1.3.0-standalone.jar
+artifact="/var/tmp/$artifact"
+if [[ $force_opt || ! -f $artifact ]];then
+  ## comment out: do not need to remove the old one
+  # if [ -f $artifact ];then 
+  #   echo rm -f $artifact
+  #   rm -f $artifact
+  # fi
+  # if [ -f $artifact ];then 
+  #   echo fail to rm $artifact, rm -f /tmp/$artifact manually ..
+  #   exit
+  # fi
+  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -DoutputDirectory=/tmp
+  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -DoutputDirectory=/tp  # -DoutputDirectory=./
+  if [ ! -f /var/tmp/$artifact ];then
+    echo "fail to get $artifact from mvn maven-dependency-plugin:3.2.0:copy !" > /dev/stderr
+    exit
+  fi
+
+  ## update cg-api-test.http as well only when artifact exist
+  get_test_http
+fi
+
+## #####################
+## get testcase
+## #####################
+
+# ls $artifact
+if [ ! -f /tmp/$testcase ];then
+  get_test_http
+  if [ ! -f /tmp/$testcase ];then
+    echo fail to get $testcase > /dev/stderr
+    exit
+  fi  
+fi
+
+## #####################
+## code testcase
+## #####################
+
+if [ $testcase_opt ];then
+  ## end get test.http
+  if [ ! -z "$(which code)" ];then 
+    code /var/tmp/$testcase
+  else
+    echo "vscode not installed or code cli not detected ！" > /dev/stderr
+  fi
+  ## exit any way for -t 
+  exit
+fi
+
+
+## #####################
+## run server
+## #####################
+
+if [ ! -z "$(which code)" ];then 
+  code /var/tmp/$testcase
+fi
+
+## run
+echo java -jar $artifact $port_opt
+java -jar $artifact $port_opt
+

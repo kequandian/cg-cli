@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+readdir(){
+  bin=$1
+  local dir=$(which $1)
+        lastpath=${dir##*/}
+        dir=${dir%/*}
+
+  if [ -d $dir/node_modules/$lastpath ];then
+     dir=$dir/node_modules/$lastpath
+  fi
+  if [[ $(uname -s) = Darwin ]];then
+     dir=${dir%/*}/lib/node_modules/$lastpath
+  fi
+  #echo $dir
+
+  ## get soft link 
+  local cli=$(ls -l $dir)
+        clis=($cli)
+  local cli_i=${#clis[@]}
+        cli_i=$((cli_i-1))
+
+  echo ${clis[$cli_i]} 
+}
+# cli=$(readdir cg-cli)
+
+usage(){
+   cat <<- EOF
+	EOF
+ 	cat <<- EOF
+    usage: cg-cli [OPTIONS] [args..]
+           cg-cli local update [table-name]
+
+    OPTIONS:
+      -h --help                  --print usage
+         --show-endpoint         --show current endpoint
+         --show-local            --show lcoal sql file path
+         --show-default <field>  --show default fields
+	EOF
+	exit
+}
+if [ ${#@} = 0 ];then 
+  usage
+fi
+
+
+## main 
+cli=$(readdir cg-cli)
+
+
+## check options
+local_cmd=$9
+update_cmd=$9
+table_name_opt=$9
+show_ep_opt=
+show_sql_opt=
+show_default_opt=
+show_default_field_opt=
+for opt in $@;do
+   if [[ $opt = '-h' ]];then 
+      usage
+   elif [[ $opt = '--help' ]];then 
+      ## do nothing, show java usage
+      opt=$opt
+   elif [[ $opt = 'local' ]];then
+      local_cmd=$opt
+   elif [[ $opt = 'update' ]];then
+      update_cmd=$opt
+   elif [[ $local_cmd && $update_cmd ]];then
+      table_name_opt=$opt
+## show endpoint
+   elif [[ $opt = --show-endpoint ]];then 
+      show_ep_opt=$opt
+## show local sql file
+   elif [[ $opt = --show-local ]];then 
+      show_sql_opt=$opt
+## show default
+   elif [[ $opt = --show-default ]];then 
+      show_default_opt=$opt
+   elif [ $show_default_opt ];then
+      show_default_field_opt=$opt
+      unset show_default_opt
+   fi
+done
+
+if [ $show_ep_opt ];then 
+#   echo $cli/cg-cli.js show-endpoint
+  node $cli/cg-cli.js show-endpoint
+elif [ $show_sql_opt ];then
+  echo $cli/cg-cli.js show-local
+  node $cli/cg-cli.js show-local
+elif [ $show_default_opt ];then 
+#   echo $cli/cg-cli.js show-default
+  node $cli/cg-cli.js show-default
+elif [ $show_default_field_opt ];then 
+#   echo $cli/cg-cli.js show-default-field $show_default_field_opt
+  node $cli/cg-cli.js show-default-field $show_default_field_opt
+
+elif [ $update_cmd ];then 
+   if [ $table_name_opt ];then
+      # echo $cli/cg-cli.js update-table-entity $table_name_opt
+      node $cli/cg-cli.js update-table-entity $table_name_opt
+   else
+      # echo $cli/cg-cli.js update-table-entity
+      node $cli/cg-cli.js update-table-entity
+   fi
+
+else
+   ## directly show nodejs commands
+   # echo $(readdir)/cg-cli.js $@
+   node $(readdir)/cg-cli.js $@
+fi
