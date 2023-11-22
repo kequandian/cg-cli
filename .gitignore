@@ -6,6 +6,7 @@ node_modules/
 .project
 .settings/
 out/
+logs/
 .env
 webjar.jar
 dist/

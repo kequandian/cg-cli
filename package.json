@@ -9,7 +9,8 @@
   "author": "smallsaas.cn",
   "dependencies": {
     "axios": "^0.24.0",
-    "commander": "^2.16.0"
+    "commander": "^2.16.0",
+    "dotenv": "^16.3.1"
   },
   "bin": {
     "cg-api-server": "cg-api-server",

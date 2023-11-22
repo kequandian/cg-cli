@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
-readdir(){
+readdir_sink(){
   bin=$1
   local dir=$(which $1)
-        lastpath=${dir##*/}
+      #   lastpath=${dir##*/}
+        basedir=$(basename $dir)
         dir=${dir%/*}
 
-  if [ -d $dir/node_modules/$lastpath ];then
-     dir=$dir/node_modules/$lastpath
+  if [ -d $dir/node_modules/$basedir ];then
+     dir=$dir/node_modules/$basedir
   fi
   if [[ $(uname -s) = Darwin ]];then
-     dir=${dir%/*}/lib/node_modules/$lastpath
+     dir=${dir%/*}/lib/node_modules/$basedir
   fi
   #echo $dir
 
@@ -23,6 +24,34 @@ readdir(){
   echo ${clis[$cli_i]} 
 }
 # cli=$(readdir cg-cli)
+
+readdir(){
+  bin=$1
+  local dir=$(which $1)
+        basedir=$(basename $dir)
+        dir=${dir%/*}
+
+  ## fix softlink
+  if [ -d $dir/node_modules/$basedir ];then
+     dir=$dir/node_modules/$basedir
+  fi
+
+  #once again
+  if [ -d $(dirname $dir)/lib/node_modules/$basedir ];then
+     dir=$(dirname $dir)/lib/node_modules/$basedir
+  fi
+  ## end fix softlink
+
+  # fix Darwin
+  if [ ! -d $dir ];then
+    if [[ $(uname -s) = Darwin ]];then
+       dir=${dir%/*}/lib/node_modules/$basedir
+    fi
+  fi
+  ## end fix Darwin
+
+  echo $dir
+}
 
 usage(){
    cat <<- EOF
@@ -45,8 +74,8 @@ fi
 
 
 ## main 
-cli=$(readdir cg-cli)
-
+clidir=$(readdir cg-cli)
+clijs=$clidir/cg-cli.js
 
 ## check options
 local_cmd=$9
@@ -85,28 +114,28 @@ done
 
 if [ $show_ep_opt ];then 
 #   echo $cli/cg-cli.js show-endpoint
-  node $cli/cg-cli.js show-endpoint
+  node $clijs show-endpoint
 elif [ $show_sql_opt ];then
-  echo $cli/cg-cli.js show-local
-  node $cli/cg-cli.js show-local
+  echo $clijs show-local
+  node $clijs show-local
 elif [ $show_default_opt ];then 
 #   echo $cli/cg-cli.js show-default
-  node $cli/cg-cli.js show-default
+  node $clijs show-default
 elif [ $show_default_field_opt ];then 
 #   echo $cli/cg-cli.js show-default-field $show_default_field_opt
-  node $cli/cg-cli.js show-default-field $show_default_field_opt
+  node $clijs show-default-field $show_default_field_opt
 
 elif [ $update_cmd ];then 
    if [ $table_name_opt ];then
       # echo $cli/cg-cli.js update-table-entity $table_name_opt
-      node $cli/cg-cli.js update-table-entity $table_name_opt
+      node $clijs update-table-entity $table_name_opt
    else
       # echo $cli/cg-cli.js update-table-entity
-      node $cli/cg-cli.js update-table-entity
+      node $clijs update-table-entity
    fi
 
 else
    ## directly show nodejs commands
    # echo $(readdir)/cg-cli.js $@
-   node $(readdir)/cg-cli.js $@
+   node $clijs $@
 fi
