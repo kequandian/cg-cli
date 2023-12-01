@@ -309,6 +309,10 @@ program
           }
           //// end find module/submodule
         }
+        if(module===undefined){
+          console.log('module is null, pls provide module name !')
+          return false
+        }
 
         //console.log(tableName, 'sqlData', sqlData)
         var sqlData = {}
@@ -433,6 +437,10 @@ program
     
     const data = fs.readFileSync('crud.json', {encoding:'utf8', flag:'r'})
     const option = JSON.parse(data)
+    if(option.module==undefined){
+       console.log('module should not be null !')
+       return
+    }
 
     // const option_log  = {
     //   project: option.project,
@@ -500,9 +508,9 @@ program
           itemsKey: "items"
         }
       ]
-      do_code_generation(tableName, false, log=>{
+      do_code_generation(tableName, log=>{
           log.slaves = slaves
-      })
+      }, true)
     });
 
 
