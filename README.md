@@ -4,8 +4,11 @@ NAME
 - `cg-cli` — 基于 SQL 的代码生成与表结构解析 CLI。
 - `cg-api-server` — 拉取并运行代码生成后端服务的脚本。
 
+INSTALL
+- npm i
+- npm link
+
 SYNOPSIS
-- 安装（全局）：`npm install -g .`
 - 环境变量：`ENDPOINT`（默认 `http://localhost:8080`）
 
 - `cg-cli [OPTIONS] [ARGS]`
