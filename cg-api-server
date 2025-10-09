@@ -2,6 +2,9 @@
 ARTIFACT='com.jfeat:cg-api:1.3.1:jar:standalone'
 artifact='cg-api-1.3.1-standalone.jar'
 testcase='cg-api-test.http'
+TMP_DIR="${TMPDIR:-/var/tmp}"
+artifact_path="$TMP_DIR/$artifact"
+mkdir -p "$TMP_DIR" 2> /dev/null
 
 usage() {
 	cat <<- EOF
@@ -42,10 +45,10 @@ fi
 ## main
 
 get_test_http(){
-  echo jar xf $artifact BOOT-INF/classes/$testcase
-  jar xf $artifact BOOT-INF/classes/$testcase
-  echo mv BOOT-INF/classes/$testcase /var/tmp/$testcase
-  mv BOOT-INF/classes/$testcase /var/tmp/$testcase
+  echo jar xf $artifact_path BOOT-INF/classes/$testcase
+  jar xf "$artifact_path" BOOT-INF/classes/$testcase
+  echo mv BOOT-INF/classes/$testcase "$TMP_DIR/$testcase"
+  mv BOOT-INF/classes/$testcase "$TMP_DIR/$testcase"
   rmdir BOOT-INF/classes 2> /dev/null
   rmdir BOOT-INF 2> /dev/null
 }
@@ -59,8 +62,7 @@ fi
 ## get artifacdt
 ## #####################
 
-## get cg-api-1.3.0-standalone.jar
-artifact="/var/tmp/$artifact"
+## get cg-api-1.3.1-standalone.jar
 if [[ $force_opt || ! -f $artifact ]];then
   ## comment out: do not need to remove the old one
   # if [ -f $artifact ];then 
@@ -71,9 +73,11 @@ if [[ $force_opt || ! -f $artifact ]];then
   #   echo fail to rm $artifact, rm -f /tmp/$artifact manually ..
   #   exit
   # fi
-  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -DoutputDirectory=/var/tmp
-  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -DoutputDirectory=/var/tmp  # -DoutputDirectory=./
-  if [ ! -f "/var/tmp/$artifact" ];then
+  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -Dartifact=$ARTIFACT -Dtype=jar -Dclassifier=standalone -U
+  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -Dartifact="$ARTIFACT" -Dtype=jar -Dclassifier=standalone -U
+  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -Dtype=jar -Dclassifier=standalone -DoutputDirectory=$TMP_DIR -U
+  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact="$ARTIFACT" -Dtype=jar -Dclassifier=standalone -DoutputDirectory="$TMP_DIR" -U  # -DoutputDirectory=./
+  if [ ! -f "$artifact_path" ];then
     echo "fail to get $artifact from mvn maven-dependency-plugin:3.2.0:copy !" > /dev/stderr
     exit
   fi
@@ -88,9 +92,9 @@ fi
 ## #####################
 
 # ls $artifact
-if [ ! -f /var/tmp/$testcase ];then
+if [ ! -f "$TMP_DIR/$testcase" ];then
   get_test_http
-  if [ ! -f /var/tmp/$testcase ];then
+  if [ ! -f "$TMP_DIR/$testcase" ];then
     echo fail to get $testcase > /dev/stderr
     exit
   fi  
@@ -103,9 +107,9 @@ fi
 if [ $testcase_opt ];then
   ## end get test.http
   if [ ! -z "$(which code)" ];then 
-    code /var/tmp/$testcase
+    code "$TMP_DIR/$testcase"
   else
-    echo "vscode not installed or code cli not detected ！" > /dev/stderr
+    echo "vscode not installed or code cli not detected 锛? > /dev/stderr
   fi
   ## exit any way for -t 
   exit
@@ -117,10 +121,10 @@ fi
 ## #####################
 
 if [ ! -z "$(which code)" ];then 
-  code /var/tmp/$testcase
+  code "$TMP_DIR/$testcase"
 fi
 
 ## run
-echo java -jar $artifact $port_opt
-java -jar $artifact $port_opt
+echo java -jar "$artifact_path" $port_opt
+java -jar "$artifact_path" $port_opt
 

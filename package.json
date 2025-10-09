@@ -8,7 +8,7 @@
   },
   "author": "smallsaas.cn",
   "dependencies": {
-    "axios": "^0.24.0",
+    "axios": "^1.12.2",
     "commander": "^2.16.0",
     "dotenv": "^16.3.1"
   },

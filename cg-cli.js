@@ -27,15 +27,28 @@ program
 program
      .command('show-local')
      .action(function () {
-        const resourcePath = 'src/main/resources/sql'
-        console.log(resourcePath)
-        fs.readdirSync(path.join(resourcePath), { withFileTypes: false })
-        .filter(function (file) {
+        const resourcePath = process.env.SQL_DIR || 'src/main/resources/sql'
+        if (!fs.existsSync(resourcePath)) {
+          console.log(resourcePath, ' not exists !')
+          // console.log('提示：请在 Maven 项目根目录执行，或设置环境变量 SQL_DIR 指向 SQL 目录。')
+          return
+        }
+        try {
+          console.log(resourcePath)
+          const files = fs.readdirSync(resourcePath, { withFileTypes: false })
+          const matched = files.filter(function (file) {
             return file.endsWith('-schema.sql')
-        })
-        .forEach(file => {
-            console.log('=>', file)
-        });
+          })
+          if (matched.length === 0) {
+            console.log('未找到 *-schema.sql 文件')
+          } else {
+            matched.forEach(file => {
+              console.log('=>', file)
+            })
+          }
+        } catch (e) {
+          console.log('读取目录失败：', e.message)
+        }
      })
 
 // program
