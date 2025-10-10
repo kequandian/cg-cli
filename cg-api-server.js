@@ -8,9 +8,10 @@ const program = require('commander');
 
 const VERSION = '1.3.1';
 const ARTIFACT_ID = 'cg-api';
-const ARTIFACT_GROUPS = ['com.jfeat', 'jfeat'];
-const ARTIFACT_NAME = 'cg-api-1.3.1-standalone.jar';
+const ARTIFACT_GROUPS = ['com.jfeat'];
+const ARTIFACT_NAME = 'cg-api-1.3.1.jar';
 const TESTCASE_NAME = 'cg-api-test.http';
+const PLUGIN_VERSION = '3.6.0';
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -25,10 +26,8 @@ function hasCmd(cmd) {
 
 function runMavenCopy(outputDir, group, debug) {
   const args = [
-    'org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy',
-    `-Dartifact=${group}:${ARTIFACT_ID}:${VERSION}`,
-    '-Dtype=jar',
-    '-Dclassifier=standalone',
+    `org.apache.maven.plugins:maven-dependency-plugin:${PLUGIN_VERSION}:copy`,
+    `-Dartifact="${group}:${ARTIFACT_ID}:${VERSION}"`,
     `-DoutputDirectory=${outputDir}`,
     '-U',
   ];
@@ -45,10 +44,8 @@ function runMavenCopy(outputDir, group, debug) {
 
 function runMavenGet(group, debug) {
   const args = [
-    'org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get',
-    `-Dartifact=${group}:${ARTIFACT_ID}:${VERSION}`,
-    '-Dtype=jar',
-    '-Dclassifier=standalone',
+    `org.apache.maven.plugins:maven-dependency-plugin:${PLUGIN_VERSION}:get`,
+    `-Dartifact="${group}:${ARTIFACT_ID}:${VERSION}"`,
     '-U',
   ];
   if (debug) args.unshift('-X');
@@ -143,14 +140,12 @@ if (opts.jar) {
     console.log('未在临时目录检测到 JAR，使用 Maven 拉取并复制。');
     let ok = false;
     for (const group of ARTIFACT_GROUPS) {
-      const got = runMavenGet(group, opts.mvnDebug);
       const copied = runMavenCopy(tmpBase, group, opts.mvnDebug);
       if (copied && fs.existsSync(jarPath)) { ok = true; break; }
     }
     if (!ok) {
-      console.error('通过 Maven 拉取 standalone JAR 失败。');
-      console.error('提示：仓库路径可能不一致（如 jfeat/cg-api 与 com/jfeat/cg-api）。');
-      console.error('请确认制品的 groupId 是否为 com.jfeat 或 jfeat，并确保版本与 classifier 存在。');
+      console.error('通过 Maven 拉取 JAR 失败。');
+      console.error('提示：请确认制品坐标是否正确（groupId=com.jfeat，artifactId=cg-api，version=1.3.1）。');
       process.exit(1);
     }
   } else {

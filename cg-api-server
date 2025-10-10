@@ -1,6 +1,6 @@
 #!/bin/sh
-ARTIFACT='com.jfeat:cg-api:1.3.1:jar:standalone'
-artifact='cg-api-1.3.1-standalone.jar'
+ARTIFACT='com.jfeat:cg-api:1.3.1'
+artifact='cg-api-1.3.1.jar'
 testcase='cg-api-test.http'
 TMP_DIR="${TMPDIR:-/var/tmp}"
 artifact_path="$TMP_DIR/$artifact"
@@ -62,8 +62,8 @@ fi
 ## get artifacdt
 ## #####################
 
-## get cg-api-1.3.1-standalone.jar
-if [[ $force_opt || ! -f $artifact ]];then
+## get cg-api-1.3.1.jar
+if [[ $force_opt || ! -f "$artifact_path" ]];then
   ## comment out: do not need to remove the old one
   # if [ -f $artifact ];then 
   #   echo rm -f $artifact
@@ -73,12 +73,10 @@ if [[ $force_opt || ! -f $artifact ]];then
   #   echo fail to rm $artifact, rm -f /tmp/$artifact manually ..
   #   exit
   # fi
-  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -Dartifact=$ARTIFACT -Dtype=jar -Dclassifier=standalone -U
-  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -Dartifact="$ARTIFACT" -Dtype=jar -Dclassifier=standalone -U
-  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact=$ARTIFACT -Dtype=jar -Dclassifier=standalone -DoutputDirectory=$TMP_DIR -U
-  mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact="$ARTIFACT" -Dtype=jar -Dclassifier=standalone -DoutputDirectory="$TMP_DIR" -U  # -DoutputDirectory=./
+  echo mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact="$ARTIFACT" -DoutputDirectory="$TMP_DIR" -U
+  mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact="$ARTIFACT" -DoutputDirectory="$TMP_DIR" -U  # -DoutputDirectory=./
   if [ ! -f "$artifact_path" ];then
-    echo "fail to get $artifact from mvn maven-dependency-plugin:3.2.0:copy !" > /dev/stderr
+    echo "fail to get $artifact from mvn maven-dependency-plugin:3.6.0:copy !" > /dev/stderr
     exit
   fi
 
